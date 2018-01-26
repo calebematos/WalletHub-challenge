@@ -1,6 +1,8 @@
 package com.ef.model;
 
 import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.util.Date;
 
 import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
@@ -9,22 +11,22 @@ import javax.persistence.Id;
 
 @Entity
 public class LogFile {
-	
+
 	@Id
-	@GeneratedValue(strategy=GenerationType.IDENTITY)
+	@GeneratedValue(strategy = GenerationType.IDENTITY)
 	private Long id;
-	
-	private LocalDate date;
+
+	private LocalDateTime date;
 	private String ip;
 	private String request;
-	private int status;
+	private String status;
 	private String userAgent;
 
-	public LocalDate getDate() {
+	public LocalDateTime getDate() {
 		return date;
 	}
 
-	public void setDate(LocalDate date) {
+	public void setDate(LocalDateTime date) {
 		this.date = date;
 	}
 
@@ -44,11 +46,11 @@ public class LogFile {
 		this.request = request;
 	}
 
-	public int getStatus() {
+	public String getStatus() {
 		return status;
 	}
 
-	public void setStatus(int status) {
+	public void setStatus(String status) {
 		this.status = status;
 	}
 
