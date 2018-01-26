@@ -1,7 +1,11 @@
 package com.ef.service;
 
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
 import java.time.LocalDateTime;
+import java.time.ZoneId;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 
 import javax.persistence.EntityManager;
@@ -10,7 +14,7 @@ import javax.persistence.Persistence;
 import javax.persistence.TypedQuery;
 import javax.persistence.criteria.CriteriaBuilder;
 import javax.persistence.criteria.CriteriaQuery;
-import javax.persistence.criteria.ParameterExpression;
+import javax.persistence.criteria.Expression;
 import javax.persistence.criteria.Predicate;
 import javax.persistence.criteria.Root;
 
@@ -28,7 +32,11 @@ public class DataBaseService {
 		em.close();
 	}
 
-	public static List<LogFile> searchInLog(LocalDateTime startDate, String duration, int threshold) {
+	public static List<LogFile> searchInLog(String startDateParam, String duration, int threshold) throws ParseException {
+
+		SimpleDateFormat dtf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss.SSS");
+		Date date = dtf.parse(startDateParam);
+		LocalDateTime startDate = date.toInstant().atZone(ZoneId.systemDefault()).toLocalDateTime();
 
 		EntityManager em = createEntityManager();
 
@@ -48,11 +56,16 @@ public class DataBaseService {
 				endDate = startDate.plusHours(1);
 
 			predicates.add(builder.between(root.<LocalDateTime>get("date"), startDate, endDate));
-
 		}
-		criteria.where(predicates.toArray(new Predicate[predicates.size()]));
 
-		TypedQuery<LogFile> query = em.createQuery(criteria);
+		Expression<String> groupByExp = root.get("ip").as(String.class);
+		Expression<Long> countExp = builder.count(groupByExp);
+
+		CriteriaQuery<LogFile> select = criteria.multiselect(groupByExp, countExp);
+		criteria.groupBy(groupByExp);
+		criteria.having(builder.gt(builder.count(root), threshold));
+
+		TypedQuery<LogFile> query = em.createQuery(select);
 		return query.getResultList();
 	}
 
