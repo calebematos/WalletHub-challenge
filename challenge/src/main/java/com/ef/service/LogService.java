@@ -9,6 +9,9 @@ import java.text.SimpleDateFormat;
 import java.time.ZoneId;
 import java.util.Date;
 
+import javax.persistence.EntityManager;
+
+import com.ef.DAO.DataBaseDAO;
 import com.ef.model.LogFile;
 
 public class LogService {
@@ -22,7 +25,7 @@ public class LogService {
 			try {
 				FileReader log = new FileReader(diretorio + "access.log");
 				BufferedReader lerArq = new BufferedReader(log);
-
+				EntityManager em = DataBaseDAO.createEntityManager();
 				String line = lerArq.readLine();
 				while (line != null) {
 					LogFile logFile = new LogFile();
@@ -42,13 +45,13 @@ public class LogService {
 					if (null != lineSplit[4])
 						logFile.setUserAgent(lineSplit[4].replace("\"", ""));
 
-					DataBaseService.saveLog(logFile);
+					DataBaseDAO.saveLog(logFile,em);
 					System.out.printf("%s\n", line);
 
 					line = lerArq.readLine();
 				}
-
 				log.close();
+				em.close();
 			} catch (IOException | ParseException e) {
 				e.printStackTrace();
 			}

@@ -1,8 +1,7 @@
 package com.ef.model;
 
-import java.time.LocalDate;
+import java.io.Serializable;
 import java.time.LocalDateTime;
-import java.util.Date;
 
 import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
@@ -10,7 +9,9 @@ import javax.persistence.GenerationType;
 import javax.persistence.Id;
 
 @Entity
-public class LogFile {
+public class LogFile implements Serializable{
+
+	private static final long serialVersionUID = 1L;
 
 	@Id
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -21,6 +22,9 @@ public class LogFile {
 	private String request;
 	private String status;
 	private String userAgent;
+	
+	public LogFile() {
+	}
 
 	public LocalDateTime getDate() {
 		return date;

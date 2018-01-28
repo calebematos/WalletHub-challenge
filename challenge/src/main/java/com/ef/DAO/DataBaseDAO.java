@@ -1,4 +1,4 @@
-package com.ef.service;
+package com.ef.DAO;
 
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
@@ -14,27 +14,26 @@ import javax.persistence.Persistence;
 import javax.persistence.TypedQuery;
 import javax.persistence.criteria.CriteriaBuilder;
 import javax.persistence.criteria.CriteriaQuery;
-import javax.persistence.criteria.Expression;
 import javax.persistence.criteria.Predicate;
 import javax.persistence.criteria.Root;
 
 import com.ef.model.Duration;
 import com.ef.model.LogFile;
 
-public class DataBaseService {
+public class DataBaseDAO {
 
-	public static void saveLog(LogFile log) {
+	public static void saveLog(LogFile log, EntityManager em) {
 
-		EntityManager em = createEntityManager();
 		em.getTransaction().begin();
 		em.persist(log);
 		em.getTransaction().commit();
-		em.close();
+		
 	}
 
-	public static List<LogFile> searchInLog(String startDateParam, String duration, int threshold) throws ParseException {
+	public static List<LogFile> searchInLog(String startDateParam, String duration, int threshold)
+			throws ParseException {
 
-		SimpleDateFormat dtf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss.SSS");
+		SimpleDateFormat dtf = new SimpleDateFormat("yyyy-MM-dd.HH:mm:ss");
 		Date date = dtf.parse(startDateParam);
 		LocalDateTime startDate = date.toInstant().atZone(ZoneId.systemDefault()).toLocalDateTime();
 
@@ -46,8 +45,19 @@ public class DataBaseService {
 
 		criteria.select(root);
 
-		List<Predicate> predicates = new ArrayList<>();
+		Predicate[] predicates = getPredicates(builder, root, startDate, duration);
 
+		criteria.where(predicates);
+		criteria.groupBy(root.get("ip"));
+		criteria.having(builder.gt(builder.count(root), threshold));
+
+		TypedQuery<LogFile> query = em.createQuery(criteria);
+		return query.getResultList();
+	}
+
+	private static Predicate[] getPredicates(CriteriaBuilder builder, Root<LogFile> root, LocalDateTime startDate,
+			String duration) {
+		List<Predicate> predicates = new ArrayList<>();
 		if (startDate != null) {
 			LocalDateTime endDate = startDate;
 			if (Duration.DAILY.getDesc().equals(duration))
@@ -55,21 +65,12 @@ public class DataBaseService {
 			if (Duration.HOURLY.getDesc().equals(duration))
 				endDate = startDate.plusHours(1);
 
-			predicates.add(builder.between(root.<LocalDateTime>get("date"), startDate, endDate));
+			predicates.add(builder.between(root.get("date"), startDate, endDate));
 		}
-
-		Expression<String> groupByExp = root.get("ip").as(String.class);
-		Expression<Long> countExp = builder.count(groupByExp);
-
-		CriteriaQuery<LogFile> select = criteria.multiselect(groupByExp, countExp);
-		criteria.groupBy(groupByExp);
-		criteria.having(builder.gt(builder.count(root), threshold));
-
-		TypedQuery<LogFile> query = em.createQuery(select);
-		return query.getResultList();
+		return predicates.toArray(new Predicate[predicates.size()]);
 	}
 
-	private static EntityManager createEntityManager() {
+	public static EntityManager createEntityManager() {
 		EntityManagerFactory emf = Persistence.createEntityManagerFactory("persistenceUnit");
 		return emf.createEntityManager();
 	}

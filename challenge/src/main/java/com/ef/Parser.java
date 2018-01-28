@@ -3,8 +3,8 @@ package com.ef;
 import java.text.ParseException;
 import java.util.List;
 
+import com.ef.DAO.DataBaseDAO;
 import com.ef.model.LogFile;
-import com.ef.service.DataBaseService;
 import com.ef.service.LogService;
 
 public class Parser {
@@ -43,9 +43,9 @@ public class Parser {
 				LogService.saveLogIntoMuSql(accesslog);
 			}
 
-			List<LogFile> searchInLog = DataBaseService.searchInLog(starDate, duration, threshold);
+			List<LogFile> searchInLog = DataBaseDAO.searchInLog(starDate, duration, threshold);
 
-			searchInLog.forEach(System.out::println);
+			searchInLog.forEach(l -> System.out.println(l.getIp()));
 
 		} catch (ParseException e) {
 			e.printStackTrace();
