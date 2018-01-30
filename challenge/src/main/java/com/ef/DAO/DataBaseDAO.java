@@ -27,32 +27,37 @@ public class DataBaseDAO {
 		em.getTransaction().begin();
 		em.persist(log);
 		em.getTransaction().commit();
-		
+
 	}
 
-	public static List<LogFile> searchInLog(String startDateParam, String duration, int threshold)
-			throws ParseException {
+	public static List<LogFile> searchInLog(String startDateParam, String duration, int threshold) {
 
-		SimpleDateFormat dtf = new SimpleDateFormat("yyyy-MM-dd.HH:mm:ss");
-		Date date = dtf.parse(startDateParam);
-		LocalDateTime startDate = date.toInstant().atZone(ZoneId.systemDefault()).toLocalDateTime();
+		try {
+			SimpleDateFormat dtf = new SimpleDateFormat("yyyy-MM-dd.HH:mm:ss");
+			Date date;
+			date = dtf.parse(startDateParam);
+			LocalDateTime startDate = date.toInstant().atZone(ZoneId.systemDefault()).toLocalDateTime();
 
-		EntityManager em = createEntityManager();
+			EntityManager em = createEntityManager();
 
-		CriteriaBuilder builder = em.getCriteriaBuilder();
-		CriteriaQuery<LogFile> criteria = builder.createQuery(LogFile.class);
-		Root<LogFile> root = criteria.from(LogFile.class);
+			CriteriaBuilder builder = em.getCriteriaBuilder();
+			CriteriaQuery<LogFile> criteria = builder.createQuery(LogFile.class);
+			Root<LogFile> root = criteria.from(LogFile.class);
 
-		criteria.select(root);
+			criteria.select(root);
 
-		Predicate[] predicates = getPredicates(builder, root, startDate, duration);
+			Predicate[] predicates = getPredicates(builder, root, startDate, duration);
 
-		criteria.where(predicates);
-		criteria.groupBy(root.get("ip"));
-		criteria.having(builder.gt(builder.count(root), threshold));
+			criteria.where(predicates);
+			criteria.groupBy(root.get("ip"));
+			criteria.having(builder.gt(builder.count(root), threshold));
 
-		TypedQuery<LogFile> query = em.createQuery(criteria);
-		return query.getResultList();
+			TypedQuery<LogFile> query = em.createQuery(criteria);
+			return query.getResultList();
+		} catch (ParseException e) {
+			e.printStackTrace();
+		}
+		return new ArrayList<LogFile>();
 	}
 
 	private static Predicate[] getPredicates(CriteriaBuilder builder, Root<LogFile> root, LocalDateTime startDate,

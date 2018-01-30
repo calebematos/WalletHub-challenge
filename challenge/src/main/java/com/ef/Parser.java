@@ -1,6 +1,5 @@
 package com.ef;
 
-import java.text.ParseException;
 import java.util.List;
 
 import com.ef.DAO.DataBaseDAO;
@@ -15,41 +14,40 @@ public class Parser {
 		int threshold = 0;
 		String accesslog = "";
 
-		try {
-			for (String arg : args) {
-				String argument = arg.split("=")[0].substring(2);
-				String value = arg.split("=")[1];
+		for (String arg : args) {
+			String argument = arg.split("=")[0].substring(2);
+			String value = arg.split("=")[1];
 
-				switch (argument) {
-				case "startDate":
-					starDate = value;
-					break;
-				case "duration":
-					duration = value;
-					break;
-				case "threshold":
-					threshold = Integer.parseInt(value);
-					break;
-				case "accesslog":
-					accesslog = value;
-					break;
-				default:
-					break;
-				}
+			switch (argument) {
+			case "startDate":
+				starDate = value;
+				break;
+			case "duration":
+				duration = value;
+				break;
+			case "threshold":
+				threshold = Integer.parseInt(value);
+				break;
+			case "accesslog":
+				accesslog = value;
+				break;
+			default:
+				break;
 			}
-
-			if (!accesslog.isEmpty()) {
-				System.out.println("Salvando no banco");
-				LogService.saveLogIntoMuSql(accesslog);
-			}
-
-			List<LogFile> searchInLog = DataBaseDAO.searchInLog(starDate, duration, threshold);
-
-			searchInLog.forEach(l -> System.out.println(l.getIp()));
-
-		} catch (ParseException e) {
-			e.printStackTrace();
 		}
+
+		if (!accesslog.isEmpty()) {
+			System.out.println("Salvando no banco");
+			LogService.saveLogIntoMuSql(accesslog);
+		}
+
+		System.out.println(starDate);
+		System.out.println(duration);
+		System.out.println(threshold);
+
+		List<LogFile> searchInLog = DataBaseDAO.searchInLog(starDate, duration, threshold);
+
+		searchInLog.forEach(l -> System.out.println(l.getIp()));
 
 	}
 }
