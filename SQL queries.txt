@@ -1,0 +1,22 @@
+select
+ 
+	id,
+
+	date,
+
+	ip,
+
+	request,
+
+	status,
+
+	userAgent
+from	LogFile 
+    
+where
+	date between '2017-01-01 00:00:00' and '2017-01-02 00:00:00'
+    
+group by
+      ip
+having
+        count(id)>100

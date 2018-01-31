@@ -1,0 +1,11 @@
+CREATE SCHEMA `parse` ;
+
+create table LogFile (
+       id bigint not null auto_increment,
+        date datetime,
+        ip varchar(255),
+        request varchar(255),
+        status varchar(255),
+        userAgent varchar(255),
+        primary key (id)
+    ) engine=MyISAM;
